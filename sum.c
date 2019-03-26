@@ -1,3 +1,8 @@
+/*
+	SCOPE: nothing much but it calculates the sum of all numbers you specify using argv 
+	USAGE: gcc -Wall sum.c -o sum
+	From there, you simply run the executable with ./sum n1 n2 n3 where ni is an integer (may be negative)
+*/
 #include <stdio.h>
 #include <stdbool.h>
 
