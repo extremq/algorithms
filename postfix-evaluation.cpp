@@ -3,8 +3,13 @@
 #include <ctype.h>
 #include <string>
 #include <cmath>
+#include <map>
+#include <regex>
+#include <cstring>
 
 using namespace std;
+
+map<string, double> variable;
 
 struct node {
     string data;
@@ -38,14 +43,13 @@ node* build(string& expression) {
 
     for (size_t i = 0; i < expression.length(); ++i) {
         if (expression[i] == ' ') {
-            cout << '.';
             continue;
         }
         if (expression[i] == '(')
             charStack.push(expression[i]);
         // Place the operands in the node stack
-        else if (isalpha(expression[i]) || isdigit(expression[i])) {
-            if (i > 0 && isalpha(expression[i - 1]) || isdigit(expression[i - 1]))
+        else if (isalpha(expression[i]) || isdigit(expression[i]) || expression[i] == '.') {
+            if (i > 0 && isalpha(expression[i - 1]) || isdigit(expression[i - 1]) || expression[i] == '.')
                 t1->data += expression[i];
             else {
                 t1 = newNode(expression[i]);
@@ -106,26 +110,19 @@ void postfix(node* root) {
     }
 }
 
-int toInt(string s)  
-{  
-    int num = 0, i = 0;  
-
-    if(s[0] == '-') ++i;
-        
-    for (; i < s.length(); i++)  
-        num = num * 10 + (int(s[i]) - 48);    
-    
-    if(s[0] == '-') num *= -1;
-        
-    return num;  
-}  
-
 double eval(node* root) {
     if (!root)
         return 0;
 
-    if (!root->left && !root->right)  
-        return toInt(root->data);  
+    if (!root->left && !root->right) {
+        const string tmp = root->data;
+        regex rgx("[a-zA-Z]");
+        smatch match;
+        if (regex_search(tmp.begin(), tmp.end(), match, rgx))
+            return variable[root->data]; 
+        else 
+            return stod(root->data);
+    }
     
     // Evaluate left subtree  
     double l_val = eval(root->left);  
@@ -149,10 +146,31 @@ double eval(node* root) {
 
 }
 
+void get_regex(const string& input)
+{
+    regex rgx("([a-zA-Z0-9]+)\\s*=\\s*([0-9]+\\.?[0-9]*)");
+    smatch match;
+    if (regex_search(input.begin(), input.end(), match, rgx))
+    {
+        variable.insert({match[1], stod(match[2])});
+    }
+}
+
 int main() {
     string s;
+    int varCount = 0;
+    cout << "How many variables do you want to include?\n";
+    cin >> varCount;
+    if (varCount > 0)
+        cout << "Format: var_name = value\n";
+    cin.get();
+    while (varCount--) {
+        string var;
+        getline(cin, var);
+        get_regex(var);
+    }
     cout << "Input an expression:\n";
-    cin >> s;
+    getline(cin, s);
     node* tree = build(s);
     cout << "= " << eval(tree);
     cout << "\nTo postfix notation: ";
