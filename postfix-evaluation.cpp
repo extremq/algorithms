@@ -1,3 +1,15 @@
+/**
+EXAMPLE USAGE:
+Enter variable count:
+2
+a = pi ^ 2 * (1 + 2)
+b = a - e ^ 2        
+Enter expression count:
+1
+(a - b) ^ 2 + (b - a) ^ 2
+= 109.196
+**/
+
 #include <iostream>
 #include <stack>
 #include <ctype.h>
@@ -6,6 +18,8 @@
 #include <map>
 #include <regex>
 #include <cstring>
+#include <typeinfo>
+#include <cassert>
 
 using namespace std;
 
@@ -148,31 +162,56 @@ double eval(node* root) {
 
 void get_regex(const string& input)
 {
-    regex rgx("([a-zA-Z0-9]+)\\s*=\\s*([0-9]+\\.?[0-9]*)");
+    regex rgx("([a-zA-Z0-9]+)\\s*=\\s*(.+)");
     smatch match;
     if (regex_search(input.begin(), input.end(), match, rgx))
     {
-        variable.insert({match[1], stod(match[2])});
+        string tmp = match[2];
+        variable.insert({match[1], eval(build(tmp))});
     }
 }
 
 int main() {
     string s;
-    int varCount = 0;
-    cout << "How many variables do you want to include?\n";
+
+    variable.insert({"pi", M_PI});
+    variable.insert({"e", M_E});
+    cout << "Enter variable count:\n";
+    int varCount;
     cin >> varCount;
-    if (varCount > 0)
-        cout << "Format: var_name = value\n";
+    while(1) {
+        if (cin.fail()) {
+            cin.clear();
+            cin.ignore(10000, '\n');
+            cin >> varCount;
+        }
+        if (!cin.fail()) {
+            break;
+        }
+    }
     cin.get();
-    while (varCount--) {
+    while(varCount--){
         string var;
         getline(cin, var);
         get_regex(var);
     }
-    cout << "Input an expression:\n";
-    getline(cin, s);
-    node* tree = build(s);
-    cout << "= " << eval(tree);
-    cout << "\nTo postfix notation: ";
-    postfix(tree);
+    cout << "Enter expression count:\n";
+    int exprCount;
+    cin >> exprCount;
+    while(1) {
+        if (cin.fail() || exprCount < 0) {
+            cin.clear();
+            cin.ignore(10000, '\n');
+            cin >> exprCount;
+        }
+        if (!cin.fail()) {
+            break;
+        }
+    }
+    cin.get();
+    while(exprCount--){
+        string var;
+        getline(cin, var);
+        cout << "= " << eval(build(var)) << '\n';
+    }
 }
